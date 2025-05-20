@@ -1,0 +1,19 @@
+[project]
+name = "google-maps-list-filter"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "folium>=0.19.6",
+    "geojson>=3.2.0",
+    "loguru>=0.7.3",
+    "shapely>=2.1.1",
+    "streamlit>=1.45.1",
+    "streamlit-folium>=0.25.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]

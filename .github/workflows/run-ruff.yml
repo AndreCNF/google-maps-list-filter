@@ -1,0 +1,13 @@
+name: Run Ruff Python linter and code formatter
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  run-ruff:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: astral-sh/ruff-action@v3
