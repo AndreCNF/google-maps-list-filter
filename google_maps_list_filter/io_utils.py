@@ -1,5 +1,6 @@
 import zipfile
 import json
+import csv
 from pathlib import Path
 from loguru import logger
 
@@ -55,3 +56,43 @@ def load_geojson(json_path: str) -> dict:
         "Loaded GeoJSON with {count} features.", count=len(data.get("features", []))
     )
     return data
+
+
+def list_saved_csvs(extract_dir: str) -> list[str]:
+    """
+    Searches the extracted directory for CSV files in any 'Saved' folder.
+    """
+    root = Path(extract_dir)
+    csv_paths = [str(p) for p in root.rglob("Saved/*.csv")]
+    logger.info("Found {count} CSV files in 'Saved' folders", count=len(csv_paths))
+    return csv_paths
+
+
+def read_saved_csv(csv_path: str) -> list[dict]:
+    """
+    Reads a CSV of saved Google Maps places and returns a list of rows.
+    """
+    rows: list[dict] = []
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+    logger.success("Read {count} rows from CSV: {csv}", count=len(rows), csv=csv_path)
+    return rows
+
+
+def extract_zip(zip_path: str, output_dir: str) -> None:
+    """
+    Extracts all contents of a ZIP file to the output directory.
+
+    Args:
+        zip_path (str): Path to the ZIP file.
+        output_dir (str): Directory to extract the contents to.
+    """
+    zip_path_obj = Path(zip_path)
+    output_dir_obj = Path(output_dir)
+    output_dir_obj.mkdir(parents=True, exist_ok=True)
+
+    logger.info("Extracting ZIP file to {dir}", dir=str(output_dir_obj))
+    with zipfile.ZipFile(zip_path_obj, "r") as zip_ref:
+        zip_ref.extractall(output_dir_obj)
