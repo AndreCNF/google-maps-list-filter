@@ -23,7 +23,7 @@ def generate_place_description(
     openai_api_key: str,
     model: str = "gpt-4o-mini-search-preview",
     system_prompt: str = (
-        "You are an assistant that writes concise, informative descriptions of places."
+        "You are an assistant that writes concise, informative descriptions of places. Always write in English."
     ),
 ) -> PlaceDescription:
     """
