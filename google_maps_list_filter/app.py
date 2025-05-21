@@ -57,53 +57,61 @@ def main():
     )
 
     # --- Step 0: Credentials ---
-    # Show instructions if no env default is available and no state stored
+    # Retrieve any environment defaults
     gmaps_default = os.getenv("GOOGLE_MAPS_API_KEY", "")
-    if not gmaps_default and "gmaps_key" not in st.session_state:
-        st.info(
-            "To get a Google Maps API key:\n"
-            "1. Go to the [Google Cloud Console](https://console.cloud.google.com/google/maps-apis/overview).\n"
-            "2. Create a project or select one.\n"
-            "3. Enable the Geocoding API.\n"
-            "4. Create an API key.\n"
-            "5. Paste it below."
-        )
-    gmaps_key = st.text_input(
-        "Google Maps API Key",
-        type="password",
-        key="gmaps_key",
-        value=st.session_state.get("gmaps_key", gmaps_default),
-    )
-
     osm_default = os.getenv("OSM_EMAIL", "")
-    if not osm_default and "osm_email" not in st.session_state:
-        st.info(
-            "To get an OpenStreetMap email:\n"
-            "1. Go to [OpenStreetMap](https://www.openstreetmap.org/) and create or log in.\n"
-            "2. Paste your email below."
-        )
-    osm_email = st.text_input(
-        "OpenStreetMap Email",
-        type="password",
-        key="osm_email",
-        value=st.session_state.get("osm_email", osm_default),
-    )
-
     openai_default = os.getenv("OPENAI_API_KEY", "")
-    if not openai_default and "openai_key" not in st.session_state:
-        st.info(
-            "To get an OpenAI API key:\n"
-            "1. Go to [OpenAI](https://platform.openai.com/signup).\n"
-            "2. Create an account or log in.\n"
-            "3. Generate an API key.\n"
-            "4. Paste it below."
+
+    # Credential inputs in three columns
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        gmaps_key = st.text_input(
+            "Google Maps API Key",
+            type="password",
+            key="gmaps_key",
+            value=st.session_state.get("gmaps_key", gmaps_default),
         )
-    openai_key = st.text_input(
-        "OpenAI API Key",
-        type="password",
-        key="openai_key",
-        value=st.session_state.get("openai_key", openai_default),
-    )
+    with col2:
+        osm_email = st.text_input(
+            "OpenStreetMap Email",
+            type="password",
+            key="osm_email",
+            value=st.session_state.get("osm_email", osm_default),
+        )
+    with col3:
+        openai_key = st.text_input(
+            "OpenAI API Key",
+            type="password",
+            key="openai_key",
+            value=st.session_state.get("openai_key", openai_default),
+        )
+    # Instructions expander below inputs, laid out in three columns
+    with st.expander("How to get these credentials", expanded=False):
+        ins_col1, ins_col2, ins_col3 = st.columns(3)
+        with ins_col1:
+            st.markdown("### Google Maps API Key")
+            st.markdown(
+                "To get a Google Maps API key:\n"
+                "1. Go to the [Google Cloud Console](https://console.cloud.google.com/google/maps-apis/overview).\n"
+                "2. Create a project or select one.\n"
+                "3. Enable the Geocoding API.\n"
+                "4. Generate and copy an API key."
+            )
+        with ins_col2:
+            st.markdown("### OpenStreetMap Email")
+            st.markdown(
+                "To get an OpenStreetMap email:\n"
+                "1. Go to [OpenStreetMap](https://www.openstreetmap.org/) and log in.\n"
+                "2. Use your account email."
+            )
+        with ins_col3:
+            st.markdown("### OpenAI API Key")
+            st.markdown(
+                "To get an OpenAI API key:\n"
+                "1. Go to [OpenAI](https://platform.openai.com/signup).\n"
+                "2. Create an account or log in.\n"
+                "3. Generate and copy an API key."
+            )
 
     # --- Step 1: Upload ZIP ---
     uploaded = st.file_uploader(
