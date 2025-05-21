@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "google-maps-list-filter",
     "folium>=0.19.6",
     "geojson>=3.2.0",
     "loguru>=0.7.3",
@@ -31,3 +32,10 @@ dev = [
 
 [tool.uv.sources]
 google-maps-list-filter = { workspace = true }
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["google_maps_list_filter"]
