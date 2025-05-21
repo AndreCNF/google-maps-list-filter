@@ -62,14 +62,24 @@ def _geocode_with_retry(query: str, gmaps_client: Any) -> list[dict]:
         list[dict]: Geocoding results from the API.
     """
 
-    @backoff.on_exception(backoff.expo, Exception, max_time=60, logger=logger)
+    @backoff.on_exception(
+        backoff.expo,
+        Exception,
+        max_tries=5,
+        max_time=60,
+    )
     def call():
         return gmaps_client.geocode(query)
 
     return call()
 
 
-@backoff.on_exception(backoff.expo, GeopyError, max_time=60, logger=logger)
+@backoff.on_exception(
+    backoff.expo,
+    GeopyError,
+    max_tries=5,
+    max_time=60,
+)
 def _nominatim_geocode(query: str, osm_email: str) -> Optional[dict[str, Any]]:
     """
     Fallback geocoding using OpenStreetMap Nominatim service with retry on errors.
@@ -97,7 +107,12 @@ def _nominatim_geocode(query: str, osm_email: str) -> Optional[dict[str, Any]]:
 
 
 # Add ArcGIS fallback geocoding
-@backoff.on_exception(backoff.expo, GeopyError, max_time=60, logger=logger)
+@backoff.on_exception(
+    backoff.expo,
+    GeopyError,
+    max_tries=5,
+    max_time=60,
+)
 def _arcgis_geocode(query: str) -> Optional[dict[str, Any]]:
     """
     Fallback geocoding using ArcGIS service with retry on errors.

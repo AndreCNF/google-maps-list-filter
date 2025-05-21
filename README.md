@@ -1,5 +1,8 @@
 # google-maps-list-filter
 
+[![Code style: ruff](https://camo.githubusercontent.com/bb88127790fb054cba2caf3f3be2569c1b97bb45a44b47b52d738f8781a8ede4/68747470733a2f2f696d672e736869656c64732e696f2f656e64706f696e743f75726c3d68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f636861726c6965726d617273682f727566662f6d61696e2f6173736574732f62616467652f76312e6a736f6e)](https://github.com/charliermarsh/ruff)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)]()
+
 Filter through long lists of Google Maps saved places, sharing them in an organized, geofenced way with AI-generated descriptions and titles.
 
 ## Features

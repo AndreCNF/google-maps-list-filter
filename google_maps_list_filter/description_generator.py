@@ -2,6 +2,7 @@
 Module for generating AI-powered descriptions of geocoded places using OpenAI and Pydantic for structured outputs.
 """
 
+import backoff
 import openai
 from loguru import logger
 from pydantic import BaseModel, Field, ValidationError
@@ -17,6 +18,12 @@ class PlaceDescription(BaseModel):
     description: str = Field(description="AI-generated brief description of the place.")
 
 
+@backoff.on_exception(
+    backoff.expo,
+    Exception,
+    max_tries=5,
+    max_time=60,
+)
 def generate_place_description(
     place_title: str,
     categories: list[str],
@@ -48,7 +55,7 @@ def generate_place_description(
     try:
         completion = client.beta.chat.completions.parse(
             model=model,
-            web_search_options={"search_context_size": "low"},
+            web_search_options={"search_context_size": "low"},  # type: ignore
             messages=[
                 {"role": "system", "content": system_prompt},
                 {

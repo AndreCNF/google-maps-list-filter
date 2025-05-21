@@ -25,6 +25,9 @@ from google_maps_list_filter.description_generator import generate_place_descrip
 # Load environment variables
 load_dotenv()
 
+# Add wide layout configuration for Streamlit app
+st.set_page_config(page_title="Google Maps Saved Places Filter", layout="wide")
+
 
 # ----- CACHING HELPERS -----
 @st.cache_data(show_spinner=False)
@@ -54,15 +57,51 @@ def main():
     )
 
     # --- Step 0: Credentials ---
-    gmaps_key = os.getenv("GOOGLE_MAPS_API_KEY") or st.text_input(
-        "Google Maps API Key", type="password", key="gmaps_key"
-    )
-    osm_email = os.getenv("OSM_EMAIL") or st.text_input(
-        "Email for OpenStreetMap Nominatim", type="default", key="osm_email"
-    )
-    openai_key = os.getenv("OPENAI_API_KEY") or st.text_input(
-        "OpenAI API Key", type="password", key="openai_key"
-    )
+    gmaps_key = st.session_state.get("gmaps_key")
+    if not gmaps_key:
+        gmaps_key = os.getenv("GOOGLE_MAPS_API_KEY")
+        if not gmaps_key:
+            st.info(
+                "To get a Google Maps API key:\n"
+                "1.  Go to the [Google Cloud Console](https://console.cloud.google.com/google/maps-apis/overview).\n"
+                "2.  Create a new project or select an existing one.\n"
+                "3.  Enable the Geocoding API.\n"
+                "4.  Create an API key.\n"
+                "5.  Paste the API key below."
+            )
+            gmaps_key = st.text_input(
+                "Google Maps API Key", type="password", key="gmaps_key"
+            )
+        st.session_state.gmaps_key = gmaps_key
+    osm_email = st.session_state.get("osm_email")
+    if not osm_email:
+        osm_email = os.getenv("OSM_EMAIL")
+        if not osm_email:
+            st.info(
+                "To get an OpenStreetMap email:\n"
+                "1.  Go to the [OpenStreetMaps](https://www.openstreetmap.org/) website.\n"
+                "2.  Create an account or log in.\n"
+                "3.  Paste your email address below."
+            )
+            osm_email = st.text_input(
+                "OpenStreetMap Email", type="password", key="osm_email"
+            )
+        st.session_state.osm_email = osm_email
+    openai_key = st.session_state.get("openai_key")
+    if not openai_key:
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            st.info(
+                "To get an OpenAI API key:\n"
+                "1.  Go to the [OpenAI API](https://platform.openai.com/signup) website.\n"
+                "2.  Create an account or log in.\n"
+                "3.  Create a new API key.\n"
+                "4.  Paste your API key below."
+            )
+            openai_key = st.text_input(
+                "OpenAI API Key", type="password", key="openai_key"
+            )
+        st.session_state.openai_key = openai_key
 
     # --- Step 1: Upload ZIP ---
     uploaded = st.file_uploader(
@@ -129,7 +168,7 @@ def main():
     if coords:
         lats, lons = zip(*coords)
         centroid = [sum(lats) / len(lats), sum(lons) / len(lons)]
-        m = folium.Map(location=centroid, zoom_start=3)
+        m = folium.Map(location=centroid, zoom_start=4)
     else:
         m = folium.Map(zoom_start=2)
     for feat in geodata.get("features", []):
@@ -137,7 +176,7 @@ def main():
         name = feat["properties"]["location"]["name"]
         folium.Marker([lat, lon], popup=name).add_to(m)
     Draw(export=True).add_to(m)
-    draw_result = st_folium(m, height=600)
+    draw_result = st_folium(m, height=600, width=800)
 
     # Ensure 'filtered' always defined
     filtered = st.session_state.get("filtered")
@@ -163,7 +202,7 @@ def main():
                 progress = st.progress(0)
                 total = len(features)
                 for i, feat in tqdm(
-                    enumerate(features), desc="Generating descriptions"
+                    enumerate(features), desc="Generating descriptions", total=total
                 ):
                     title = feat["properties"]["location"]["name"]
                     cats = feat["properties"].get("categories", [])
@@ -180,18 +219,8 @@ def main():
     else:
         st.info("Descriptions already generated.")
 
-    # --- Step 6: Display & Download ---
-    st.subheader("Filtered Results & Downloads")
-    first = filtered["features"][0]["geometry"]["coordinates"]
-    fm = folium.Map(location=[first[1], first[0]], zoom_start=3)
-    for feat in filtered["features"]:
-        lon, lat = feat["geometry"]["coordinates"]
-        name = feat["properties"].get("title") or feat["properties"]["location"]["name"]
-        folium.Marker([lat, lon], popup=name, icon=folium.Icon(color="green")).add_to(
-            fm
-        )
-    st_folium(fm, height=400)
-
+    # --- Step 6: Download ---
+    st.subheader("Downloads")
     geojson_str = json.dumps(filtered, indent=2)
     st.download_button(
         "Download filtered GeoJSON",
@@ -202,15 +231,16 @@ def main():
 
     buf = io.StringIO()
     writer = csv.writer(buf)
-    writer.writerow(["name", "description", "WKT"])
+    writer.writerow(["name", "description", "categories", "WKT"])
     for feat in filtered["features"]:
         lon, lat = feat["geometry"]["coordinates"]
         props = feat.get("properties", {})
         name = props.get("title") or props.get("location", {}).get("name", "")
         desc = props.get("description", "")
-        writer.writerow([name, desc, f"POINT({lon} {lat})"])
+        categories = props.get("categories", [])
+        writer.writerow([name, desc, ", ".join(categories), f"POINT({lon} {lat})"])
     st.download_button(
-        "Download CSV for My Maps",
+        "Download CSV to import in Google My Maps",
         buf.getvalue(),
         file_name="filtered_saved_places_mymaps.csv",
         mime="text/csv",
